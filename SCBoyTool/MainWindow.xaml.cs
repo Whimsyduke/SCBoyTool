@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -21,45 +22,71 @@ using System.Xml.Linq;
 namespace SCBoyTool
 {
     /// <summary>
-    /// 自动序号Converter
+    /// 测试值转换器
     /// </summary>
-    public class AutoNumberValueConverter : IMultiValueConverter
+    public class TestValueConverter : IValueConverter
     {
         /// <summary>
         /// 转换函数
         /// </summary>
-        /// <param name="values">值数组</param>
+        /// <param name="value">值</param>
         /// <param name="targetType">目标类型</param>
         /// <param name="parameter">参数</param>
-        /// <param name="culture">本地化</param>
+        /// <param name="culture">本地化信息</param>
         /// <returns>转换结果</returns>
-        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (values[0] == null || values[1] == null) return 0;
-            if (values[1] is ItemCollection items)
-            {
-                int index = items.IndexOf(values[0]);
-                return (index + 1).ToString();
-            }
-            else
-            {
-                return "";
-            }
+            return value;
         }
 
         /// <summary>
-        /// 逆向转换函数
+        /// 反向转回函数
         /// </summary>
-        /// <param name="value">值数组</param>
-        /// <param name="targetTypes">目标类型</param>
+        /// <param name="value">值</param>
+        /// <param name="targetType">目标类型</param>
         /// <param name="parameter">参数</param>
-        /// <param name="culture">本地化</param>
+        /// <param name="culture">本地化信息</param>
         /// <returns>转换结果</returns>
-        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return null;
+            return value;
+        }
+    }
+
+    /// <summary>
+    /// 自动序号Converter
+    /// </summary>
+    public class AutoNumberValueConverter : IValueConverter
+    {
+        /// <summary>
+        /// 转换函数
+        /// </summary>
+        /// <param name="value">值</param>
+        /// <param name="targetType">目标类型</param>
+        /// <param name="parameter">参数</param>
+        /// <param name="culture">本地化信息</param>
+        /// <returns>转换结果</returns>
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is DataGridRow row)
+            {
+                return row.GetIndex() + 1;
+            }
+            return -1;
         }
 
+        /// <summary>
+        /// 反向转回函数
+        /// </summary>
+        /// <param name="value">值</param>
+        /// <param name="targetType">目标类型</param>
+        /// <param name="parameter">参数</param>
+        /// <param name="culture">本地化信息</param>
+        /// <returns>转换结果</returns>
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return value;
+        }
     }
 
     /// <summary>
@@ -100,6 +127,43 @@ namespace SCBoyTool
         /// </summary>
         private string BaseFolder { set; get; } = Environment.CurrentDirectory;
 
+        /// <summary>
+        /// 正则切换数据
+        /// </summary>
+        private bool IsChangeData { set; get; }
+
+        /// <summary>
+        /// 当前数据集依赖项
+        /// </summary>
+        public readonly DependencyProperty CurrentDataSetProperty = DependencyProperty.Register(nameof(CurrentDataSet), typeof(DataSet_PlayerInfo), typeof(MainWindow));
+
+        /// <summary>
+        /// 当前数据集依赖项属性
+        /// </summary>
+        public DataSet_PlayerInfo CurrentDataSet
+        {
+            set 
+            {
+                IsChangeData = true;
+                DataSet_PlayerInfo info = value;
+                if (info == null)
+                {
+                    info = DataSet_PlayerInfo.DefaultInfo();
+                }
+                SetValue(CurrentDataSetProperty, info); 
+                DataGrid_PlayerLogo.ItemsSource = info.DataTable_PlayerInfo.DefaultView;
+                TextBox_PrimaryLogo.Text = info.PrimaryLogo;
+                CheckBox_PrimaryIsUsed.IsChecked = !info.IgnorePrimaryLogo;
+                TextBox_SecondaryLogo.Text = info.SecondaryLogo;
+                CheckBox_SecondaryIsUsed.IsChecked = !info.IgnoreSecondaryLogo;
+                IsChangeData = false;
+            }
+            get 
+            {
+                return GetValue(CurrentDataSetProperty) as DataSet_PlayerInfo;
+            }
+        }
+
         #endregion 属性
 
         #region 字段
@@ -120,6 +184,7 @@ namespace SCBoyTool
         public MainWindow()
         {
             InitializeComponent();
+            CurrentDataSet = null;
         }
 
         #endregion 构造函数
@@ -181,7 +246,11 @@ namespace SCBoyTool
             return fileDialog.ShowDialog();
         }
 
-        #endregion
+        #endregion 打开保存窗口
+
+        #region UI方法
+
+        #endregion UI方法
 
         #endregion 通用方法
 
@@ -190,16 +259,6 @@ namespace SCBoyTool
         #endregion 重写方法
 
         #region 事件方法
-
-        /// <summary>
-        /// 加载行事件
-        /// </summary>
-        /// <param name="sender">响应控件</param>
-        /// <param name="e">响应参数</param>
-        private void DataGrid_PlayerLogo_LoadingRow(object sender, DataGridRowEventArgs e)
-        {
-            e.Row.Header = e.Row.GetIndex() + 1;
-        }
 
         /// <summary>
         /// 加载按钮
@@ -214,15 +273,15 @@ namespace SCBoyTool
             {
                 FileInfo file = new FileInfo(fileDialog.FileName);
                 BaseFolder = file.DirectoryName;
-                XmlDocument doc = new XmlDocument();
-                doc.Load(file.FullName);
-
-                XmlDataProvider xdp = new XmlDataProvider
+                try
                 {
-                    Document = doc,
-                    XPath = @"LogoConfig/PlayerLogoEntry"
-                };
-                DataGrid_PlayerLogo.DataContext = xdp;
+                    XDocument doc = XDocument.Load(file.FullName);
+                    CurrentDataSet = new DataSet_PlayerInfo(doc);
+                }
+                catch
+                {
+                    System.Windows.MessageBox.Show($"读取Xml文件（{file.FullName}）失败");
+                }
             }
         }
 
@@ -233,12 +292,146 @@ namespace SCBoyTool
         /// <param name="e">响应参数</param>
         private void Button_Clean_Click(object sender, RoutedEventArgs e)
         {
-            DataGrid_PlayerLogo.DataContext = null;
+            CurrentDataSet = null;
+            DataGrid_PlayerLogo.SelectedItem = null;
+        }
+
+        /// <summary>
+        /// 导出按钮
+        /// </summary>
+        /// <param name="sender">响应控件</param>
+        /// <param name="e">响应参数</param>
+        private void Button_Export_Click(object sender, RoutedEventArgs e)
+        {
+            if (CurrentDataSet == null)
+            {
+                return;
+            }
+            string filter = "XML文档|*.xml";
+            string title = "保存配置文件"; 
+            if (SaveFilePathDialog(BaseFolder, filter, title, out SaveFileDialog fileDialog) == System.Windows.Forms.DialogResult.OK)
+            {
+                FileInfo file = new FileInfo(fileDialog.FileName);
+                BaseFolder = file.DirectoryName;
+                try
+                {
+                    CurrentDataSet.RefreshDocument();
+                    CurrentDataSet.Document.Save(file.FullName);
+                }
+                catch(Exception err)
+                {
+                    System.Windows.MessageBox.Show($"保存Xml文件（{file.FullName}）失败。\r\n{err.Message}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// 插入数据（前）
+        /// </summary>
+        /// <param name="sender">响应控件</param>
+        /// <param name="e">响应参数</param>
+        private void MenuItem_SelectBefore_Click(object sender, RoutedEventArgs e)
+        {
+            if (CurrentDataSet == null) return;
+            if (DataGrid_PlayerLogo.CurrentItem is DataRowView view)
+            {
+                DataRow row = view.Row;
+                DataTable table = row.Table;
+                DataRowCollection collection = table.Rows;
+                int index = collection.IndexOf(row);
+                collection.InsertAt(table.NewRow(), index);
+                table.AcceptChanges();
+            }
+            else if (DataGrid_PlayerLogo.CurrentItem == null)
+            {
+                DataTable table = CurrentDataSet.DataTable_PlayerInfo;
+                table.Rows.Add(table.NewRow());
+            }
+        }
+
+        /// <summary>
+        /// 插入数据（后）
+        /// </summary>
+        /// <param name="sender">响应控件</param>
+        /// <param name="e">响应参数</param>
+        private void MenuItem_SelectAfter_Click(object sender, RoutedEventArgs e)
+        {
+            if (CurrentDataSet == null) return;
+            if (DataGrid_PlayerLogo.CurrentItem is DataRowView view)
+            {
+                DataRow row = view.Row;
+                DataTable table = row.Table;
+                DataRowCollection collection = table.Rows;
+                int index = collection.IndexOf(row);
+                collection.InsertAt(table.NewRow(), index + 1);
+                table.AcceptChanges();
+            }
+            else if (DataGrid_PlayerLogo.CurrentItem == null)
+            {
+                DataTable table = CurrentDataSet.DataTable_PlayerInfo;
+                table.Rows.Add(table.NewRow());
+            }
+        }
+
+        /// <summary>
+        /// 数据表完成编辑事件
+        /// </summary>
+        /// <param name="sender">响应控件</param>
+        /// <param name="e">响应参数</param>
+        private void DataGrid_PlayerLogo_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+        {
+            if (e.Row is DataGridRow row && row.Item is DataRowView rowView && rowView.Row is DataRow rowData)
+            {
+                rowData.Table.AcceptChanges();
+            }
+        }
+
+        /// <summary>
+        /// 主要Logo文件路径变化事件
+        /// </summary>
+        /// <param name="sender">响应控件</param>
+        /// <param name="e">响应参数</param>
+        private void TextBox_PrimaryFile_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (CurrentDataSet == null || IsChangeData) return;
+            CurrentDataSet.PrimaryLogo = TextBox_PrimaryLogo.Text;
+        }
+
+        /// <summary>
+        /// 主要Logo文件忽略切换变化事件
+        /// </summary>
+        /// <param name="sender">响应控件</param>
+        /// <param name="e">响应参数</param>
+        private void CheckBox_PrimaryIsUsed_CheckChange(object sender, RoutedEventArgs e)
+        {
+            if (CurrentDataSet == null || IsChangeData) return;
+            CurrentDataSet.IgnorePrimaryLogo = CheckBox_PrimaryIsUsed.IsChecked != true;
+        }
+
+        /// <summary>
+        /// 主要Logo文件路径变化事件
+        /// </summary>
+        /// <param name="sender">响应控件</param>
+        /// <param name="e">响应参数</param>
+        private void TextBox_SecondaryFile_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (CurrentDataSet == null || IsChangeData) return;
+            CurrentDataSet.SecondaryLogo = TextBox_PrimaryLogo.Text;
+        }
+
+        /// <summary>
+        /// 次要Logo文件忽略切换变化事件
+        /// </summary>
+        /// <param name="sender">响应控件</param>
+        /// <param name="e">响应参数</param>
+        private void CheckBox_SecondaryIsUsed_CheckChange(object sender, RoutedEventArgs e)
+        {
+            if (CurrentDataSet == null || IsChangeData) return;
+            CurrentDataSet.IgnoreSecondaryLogo = CheckBox_PrimaryIsUsed.IsChecked != true;
         }
 
         #endregion 事件方法 
 
         #endregion 方法
-
     }
 }

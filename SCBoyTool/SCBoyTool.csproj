@@ -64,7 +64,14 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Class_PlayerInfo.cs" />
+    <Compile Include="DataSet_PlayerInfo.cs">
+      <DependentUpon>DataSet_PlayerInfo.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="DataSet_PlayerInfo.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DataSet_PlayerInfo.xsd</DependentUpon>
+    </Compile>
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -88,6 +95,17 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="DataSet_PlayerInfo.xsc">
+      <DependentUpon>DataSet_PlayerInfo.xsd</DependentUpon>
+    </None>
+    <None Include="DataSet_PlayerInfo.xsd">
+      <SubType>Designer</SubType>
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>DataSet_PlayerInfo.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="DataSet_PlayerInfo.xss">
+      <DependentUpon>DataSet_PlayerInfo.xsd</DependentUpon>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

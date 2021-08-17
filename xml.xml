@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LogoConfig IgnorePlayerPrimaryLogo="false" IgnorePlayerSecondaryLogo="false">
+    <LeagueLogoEntry PrimaryLogo="GoldcupFinal.dds" SecondaryLogo="GoldcupFinal.dds"/>
+    
+    <PlayerLogoEntry TeamName="NO TEAM" PrimaryLogo="Blank.dds" SecondaryLogo="Blank.dds">
+        <FrameLogoText Alias ="PlayerName" Text=""/>
+        <FrameLogoImage Alias ="Logo" FilePath="Blank.dds"/>
+        <FrameLogoImage Alias ="LogoSmall" FilePath="Blank.dds"/>
+    </PlayerLogoEntry>
+
+    <PlayerLogoEntry TeamName="Meliora" PrimaryLogo="Meliora_Esports.dds" SecondaryLogo="Blank.dds">
+        <FrameLogoText Alias ="PlayerName" Text="Meliora"/>
+        <FrameLogoImage Alias ="Logo" FilePath="Meliora_Esports.dds"/>
+        <FrameLogoImage Alias ="LogoSmall" FilePath="Meliora_EsportsSmall.dds"/>
+    </PlayerLogoEntry>
+
+    <PlayerLogoEntry TeamName="Newbee" PrimaryLogo="Newbee.dds" SecondaryLogo="Blank.dds">
+        <FrameLogoText Alias ="PlayerName" Text="Newbee"/>
+        <FrameLogoImage Alias ="Logo" FilePath="Newbee.dds"/>
+        <FrameLogoImage Alias ="LogoSmall" FilePath="NewbeeSmall.dds"/>
+    </PlayerLogoEntry>
+
+    <PlayerLogoEntry TeamName="OGamingTV" PrimaryLogo="OGamingTV.dds" SecondaryLogo="Blank.dds">
+        <FrameLogoText Alias ="PlayerName" Text="OGamingTV"/>
+        <FrameLogoImage Alias ="Logo" FilePath="OGamingTV.dds"/>
+        <FrameLogoImage Alias ="LogoSmall" FilePath="OGamingTVSmall.dds"/>
+    </PlayerLogoEntry>
+
+    <PlayerLogoEntry TeamName="Otherplayer" PrimaryLogo="Otherplayer.dds" SecondaryLogo="Blank.dds">
+        <FrameLogoText Alias ="PlayerName" Text="Otherplayer"/>
+        <FrameLogoImage Alias ="Logo" FilePath="Otherplayer.dds"/>
+        <FrameLogoImage Alias ="LogoSmall" FilePath="OtherplayerSmall.dds"/>
+    </PlayerLogoEntry>
+
+    <PlayerLogoEntry TeamName="Ting" PrimaryLogo="Ting.dds" SecondaryLogo="Blank.dds">
+        <FrameLogoText Alias ="PlayerName" Text="Ting"/>
+        <FrameLogoImage Alias ="Logo" FilePath="Ting.dds"/>
+        <FrameLogoImage Alias ="LogoSmall" FilePath="TingSmall.dds"/>
+    </PlayerLogoEntry>
+
+    <PlayerLogoEntry TeamName="Tollenz_Lions" PrimaryLogo="Tollenz_Lions.dds" SecondaryLogo="Blank.dds">
+        <FrameLogoText Alias ="PlayerName" Text="Tollenz_Lions"/>
+        <FrameLogoImage Alias ="Logo" FilePath="Tollenz_Lions.dds"/>
+        <FrameLogoImage Alias ="LogoSmall" FilePath="Tollenz_LionsSmall.dds"/>
+    </PlayerLogoEntry>
+</LogoConfig>

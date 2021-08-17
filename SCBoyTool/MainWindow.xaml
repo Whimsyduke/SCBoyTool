@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:SCBoyTool"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    x:Name="WindowMain"
     Title="SCBOy Tool"
     Width="800"
     Height="450"
@@ -12,6 +13,7 @@
     <Window.Resources>
         <local:AutoNumberValueConverter x:Key="Converter_AutoNumberValue" />
         <BooleanToVisibilityConverter x:Key="Converter_BooleanToVisibility" />
+        <local:TestValueConverter x:Key="Converter_TestValue" />
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -34,14 +36,17 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <TextBox
-                            x:Name="TextBox_PrimaryFile"
+                            x:Name="TextBox_PrimaryLogo"
                             Grid.Column="0"
-                            Margin="3" />
+                            Margin="3"
+                            TextChanged="TextBox_PrimaryFile_TextChanged" />
                         <CheckBox
                             x:Name="CheckBox_PrimaryIsUsed"
                             Grid.Column="1"
-                            Margin="3"
-                            VerticalAlignment="Center" />
+                            Margin="3,0,3,4"
+                            VerticalAlignment="Bottom"
+                            Checked="CheckBox_PrimaryIsUsed_CheckChange"
+                            Unchecked="CheckBox_PrimaryIsUsed_CheckChange" />
                     </Grid>
                 </GroupBox>
                 <GroupBox
@@ -54,14 +59,17 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <TextBox
-                            x:Name="TextBox_SecondaryFile"
+                            x:Name="TextBox_SecondaryLogo"
                             Grid.Column="0"
-                            Margin="3" />
+                            Margin="3"
+                            TextChanged="TextBox_SecondaryFile_TextChanged" />
                         <CheckBox
                             x:Name="CheckBox_SecondaryIsUsed"
                             Grid.Column="1"
                             Margin="3"
-                            VerticalAlignment="Center" />
+                            VerticalAlignment="Center"
+                            Checked="CheckBox_SecondaryIsUsed_CheckChange"
+                            Unchecked="CheckBox_SecondaryIsUsed_CheckChange" />
                     </Grid>
                 </GroupBox>
             </Grid>
@@ -82,14 +90,20 @@
                     AlternatingRowBackground="LightGray"
                     AlternationCount="2"
                     AutoGenerateColumns="False"
-                    CanUserAddRows="True"
+                    CanUserAddRows="False"
+                    CellEditEnding="DataGrid_PlayerLogo_CellEditEnding"
                     EnableColumnVirtualization="False"
                     EnableRowVirtualization="True"
                     ItemsSource="{Binding}"
-                    LoadingRow="DataGrid_PlayerLogo_LoadingRow"
                     SelectionMode="Extended"
                     SelectionUnit="CellOrRowHeader">
                     <DataGrid.Resources>
+                        <MenuItem
+                            x:Key="MenuItem_Index"
+                            Header="序号"
+                            IsCheckable="True"
+                            IsChecked="True"
+                            Tag="1" />
                         <MenuItem
                             x:Key="MenuItem_TeamName"
                             Header="队伍名称"
@@ -118,15 +132,16 @@
                             x:Key="MenuItem_PlayerLogo"
                             Header="选手Logo"
                             IsCheckable="True"
-                            IsChecked="True"
+                            IsChecked="False"
                             Tag="4" />
                         <MenuItem
                             x:Key="MenuItem_PlayerLogoSmall"
                             Header="选手Logo（小）"
                             IsCheckable="True"
-                            IsChecked="True"
+                            IsChecked="False"
                             Tag="5" />
                         <ContextMenu x:Key="ContextMenu_ColumnVisible">
+                            <StaticResource ResourceKey="MenuItem_Index" />
                             <StaticResource ResourceKey="MenuItem_TeamName" />
                             <StaticResource ResourceKey="MenuItem_PrimaryLogo" />
                             <StaticResource ResourceKey="MenuItem_SecondaryLogo" />
@@ -137,8 +152,8 @@
                     </DataGrid.Resources>
                     <DataGrid.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Header="插入数据（前）" />
-                            <MenuItem Header="插入数据（后）" />
+                            <MenuItem Click="MenuItem_SelectBefore_Click" Header="插入数据（选择行之前）" />
+                            <MenuItem Click="MenuItem_SelectAfter_Click" Header="插入数据（选择行之后）" />
                             <Separator />
                             <MenuItem Header="删除当前行" />
                         </ContextMenu>
@@ -158,18 +173,6 @@
                             </Style.Triggers>
                         </Style>
                     </DataGrid.CellStyle>
-                    <DataGrid.RowHeaderStyle>
-                        <Style TargetType="{x:Type DataGridRowHeader}">
-                            <Setter Property="Content">
-                                <Setter.Value>
-                                    <MultiBinding Converter="{StaticResource Converter_AutoNumberValue}">
-                                        <Binding />
-                                        <Binding Path="Items" RelativeSource="{RelativeSource AncestorType={x:Type DataGrid}}" />
-                                    </MultiBinding>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </DataGrid.RowHeaderStyle>
                     <DataGrid.RowStyle>
                         <Style TargetType="{x:Type DataGridRow}">
                             <Setter Property="VerticalAlignment" Value="Stretch" />
@@ -191,9 +194,29 @@
                     </DataGrid.ColumnHeaderStyle>
                     <DataGrid.Columns>
                         <DataGridTextColumn
+                            x:Name="DataGridColumn_Index"
+                            Width="Auto"
+                            Binding="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow}, Converter={StaticResource Converter_AutoNumberValue}}"
+                            CanUserReorder="True"
+                            CanUserResize="True"
+                            CanUserSort="True"
+                            IsReadOnly="True"
+                            Visibility="{Binding Source={StaticResource MenuItem_Index}, Path=IsChecked, Converter={StaticResource ResourceKey=Converter_BooleanToVisibility}}">
+                            <DataGridTextColumn.Header>
+                                <TextBlock Text="序号" />
+                            </DataGridTextColumn.Header>
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Center" />
+                                    <Setter Property="VerticalAlignment" Value="Center" />
+                                    <Setter Property="Margin" Value="2" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn
                             x:Name="DataGridColumn_TeamName"
                             Width="Auto"
-                            Binding="{Binding XPath=@TeamName, UpdateSourceTrigger=PropertyChanged}"
+                            Binding="{Binding TeamName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                             CanUserResize="True"
                             CanUserSort="True"
                             Visibility="{Binding Source={StaticResource MenuItem_TeamName}, Path=IsChecked, Converter={StaticResource ResourceKey=Converter_BooleanToVisibility}}">
@@ -211,7 +234,7 @@
                         <DataGridTextColumn
                             x:Name="DataGridColumn_PrimaryLogo"
                             Width="Auto"
-                            Binding="{Binding XPath=@PrimaryLogo, UpdateSourceTrigger=PropertyChanged}"
+                            Binding="{Binding PrimaryLogo, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                             CanUserResize="True"
                             CanUserSort="True"
                             Visibility="{Binding Source={StaticResource MenuItem_PrimaryLogo}, Path=IsChecked, Converter={StaticResource ResourceKey=Converter_BooleanToVisibility}}">
@@ -239,7 +262,7 @@
                         <DataGridTextColumn
                             x:Name="DataGridColumn_SecondaryLogo"
                             Width="Auto"
-                            Binding="{Binding XPath=@SecondaryLogo, UpdateSourceTrigger=PropertyChanged}"
+                            Binding="{Binding SecondLogo, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                             CanUserResize="True"
                             CanUserSort="True"
                             Visibility="{Binding Source={StaticResource MenuItem_SecondaryLogo}, Path=IsChecked, Converter={StaticResource ResourceKey=Converter_BooleanToVisibility}}">
@@ -267,7 +290,7 @@
                         <DataGridTextColumn
                             x:Name="DataGridColumn_PlayerName"
                             Width="Auto"
-                            Binding="{Binding XPath=FrameLogoText/@Text, UpdateSourceTrigger=PropertyChanged}"
+                            Binding="{Binding PlayerName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                             CanUserResize="True"
                             CanUserSort="True"
                             Visibility="{Binding Source={StaticResource MenuItem_PlayerName}, Path=IsChecked, Converter={StaticResource ResourceKey=Converter_BooleanToVisibility}}">
@@ -295,12 +318,12 @@
                         <DataGridTextColumn
                             x:Name="DataGridColumn_PlayerLogo"
                             Width="Auto"
-                            Binding="{Binding XPath=FrameLogoImage/@FilePath, UpdateSourceTrigger=PropertyChanged}"
+                            Binding="{Binding PrimaryLogo, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                             CanUserResize="True"
                             CanUserSort="True"
                             Visibility="{Binding Source={StaticResource MenuItem_PlayerLogo}, Path=IsChecked, Converter={StaticResource ResourceKey=Converter_BooleanToVisibility}}">
                             <DataGridTextColumn.Header>
-                                <TextBlock Text="选手Logo" />
+                                <TextBlock Text="选手名称" />
                             </DataGridTextColumn.Header>
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
@@ -323,12 +346,12 @@
                         <DataGridTextColumn
                             x:Name="DataGridColumn_PlayerLogoSmall"
                             Width="Auto"
-                            Binding="{Binding XPath=FrameLogoImage[2]/@FilePath, UpdateSourceTrigger=PropertyChanged}"
+                            Binding="{Binding PrimaryLogo, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                             CanUserResize="True"
                             CanUserSort="True"
                             Visibility="{Binding Source={StaticResource MenuItem_PlayerLogoSmall}, Path=IsChecked, Converter={StaticResource ResourceKey=Converter_BooleanToVisibility}}">
                             <DataGridTextColumn.Header>
-                                <TextBlock Text="选手Logo（小）" />
+                                <TextBlock Text="选手名称" />
                             </DataGridTextColumn.Header>
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
@@ -372,6 +395,7 @@
                         x:Name="Button_Export"
                         Height="30"
                         Margin="3,5,3,5"
+                        Click="Button_Export_Click"
                         Content="导出" />
                 </StackPanel>
             </GroupBox>
