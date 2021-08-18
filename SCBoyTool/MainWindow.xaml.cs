@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
@@ -370,6 +370,24 @@ namespace SCBoyTool
             {
                 DataTable table = CurrentDataSet.DataTable_PlayerInfo;
                 table.Rows.Add(table.NewRow());
+            }
+        }
+
+        /// <summary>
+        /// 删除数据（选择）
+        /// </summary>
+        /// <param name="sender">响应控件</param>
+        /// <param name="e">响应参数</param>
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (CurrentDataSet == null) return;
+            if (DataGrid_PlayerLogo.CurrentItem is DataRowView view)
+            {
+                DataRow row = view.Row;
+                DataTable table = row.Table;
+                DataRowCollection collection = table.Rows;
+                collection.Remove(row);
+                table.AcceptChanges();
             }
         }
 

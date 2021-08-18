@@ -1,4 +1,4 @@
-﻿<Window
+<Window
     x:Class="SCBoyTool.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -155,7 +155,7 @@
                             <MenuItem Click="MenuItem_SelectBefore_Click" Header="插入数据（选择行之前）" />
                             <MenuItem Click="MenuItem_SelectAfter_Click" Header="插入数据（选择行之后）" />
                             <Separator />
-                            <MenuItem Header="删除当前行" />
+                            <MenuItem Header="删除当前行" Click="MenuItem_Click" />
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                     <DataGrid.CellStyle>
